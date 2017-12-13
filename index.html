@@ -1,0 +1,39 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+</head>
+
+<body>
+
+    <form action="http://localhost/index.php" method="post" enctype="multipart/form-data">
+
+        <input type="file" name="file" id="file">
+        <input type="button" value="上传" id="upload" style="display:none">
+        <input type="submit" value="提交">
+
+    </form>
+    <script>
+        document.getElementById('upload').onclick = function() {
+            document.getElementById('file').click();
+            this.blur();
+        }
+    </script>
+    <!-- <form method="post" action="http://localhost/index.php">
+
+        <input type="button" id="upload" value="上传">
+        <input type="file" id="file" name="file" style="display:none" />
+
+
+
+        <input type="submit" value="保存草稿" />
+    </form>
+
+    <script>
+        document.getElementById('upload').onclick = function() {
+            document.getElementById('file').click();
+        }
+    </script> -->
+</body>
+
+</html>
