@@ -9,6 +9,7 @@ $arr = [
                         'rows'=>[
                             [
                                 'value'=>"字段名",
+                                'fontBold'=>true,
                             ],
                             [
                                 'value'=>"字段名1",
@@ -18,7 +19,9 @@ $arr = [
                             ],
                         ],
                         'height'=>'30',
-                        'fontSize'=>'30'
+                        'fontSize'=>'15',
+                        'vertical'=>'top'
+
                     ],
                     [
                         'rows'=>[
@@ -32,12 +35,14 @@ $arr = [
                                 'value'=>"测试2",
                             ],
                         ],
-                        'height'=>'30'
+                        'height'=>'15',
+                        'vertical'=>'top'
                     ],     
                 ]
     ]
 ];
 class Execl{
+    // 表格的列id生成
     private function numberToLetter($number){
         if( $number<=26 ){
             $str = chr(64+$number);
@@ -49,42 +54,94 @@ class Execl{
         }
         return $str;
     }
-    private function setFont($sheet,$method,$row,$ncell,$v,$type){
+    // 设置字体
+    private function setRowCellStyle($sheet,$fun,$method,$row,$ncell,$v,$type){
         if( $type=='row' ){
             for( $i=1;$i<=$ncell;$i++ ){
                 $cell= $this ->numberToLetter($i);
-                $sheet ->getStyle($cell.$row)->getFont()->$method($v); 
+                $sheet ->getStyle($cell.$row)->$fun()->$method($v); 
             }
         }elseif( $type=='cell' ){
             $cell= $this ->numberToLetter($ncell);
             for( $i=1;$i<=$row;$i++ ){
-                $sheet ->getStyle($cell.$i)->getFont()->$method($v); 
+                $sheet ->getStyle($cell.$i)->$fun()->$method($v); 
             }
         }else{
             $cell= $this ->numberToLetter($ncell);
-            $sheet ->getStyle($cell.$row)->getFont()->$method($v); 
+            $sheet ->getStyle($cell.$row)->$fun()->$method($v); 
         }
     }
+    // 设置垂直方向布局
+    private function setVertical($sheet,$row,$ncell,$v,$type){
+        $value = PHPExcel_Style_Alignment::VERTICAL_JUSTIFY;
+        switch( $v ){
+            case 'top':
+                $value = PHPExcel_Style_Alignment::VERTICAL_TOP;
+                break;
+            case 'bottom':
+                $value = PHPExcel_Style_Alignment::VERTICAL_BOTTOM;
+                break;
+            case 'center':
+                $value = PHPExcel_Style_Alignment::VERTICAL_CENTER;
+                break;
+        }
+        $this ->setRowCellStyle($sheet,'getAlignment','setVertical',$row,$ncell,$value,$type);
+        
+    }
+    // 设置水平方向布局
+    private function setHorizontal($sheet,$row,$ncell,$v,$type){
+        $value = PHPExcel_Style_Alignment::HORIZONTAL_JUSTIFY;
+        switch( $v ){
+            case 'right':
+                $value = PHPExcel_Style_Alignment::HORIZONTAL_RIGHT;
+                break;
+            case 'left':
+                $value = PHPExcel_Style_Alignment::HORIZONTAL_LEFT;
+                break;
+            case 'center':
+                $value = PHPExcel_Style_Alignment::VERTICAL_CENTER;
+                break;
+            case 'justify':
+                $value = PHPExcel_Style_Alignment::HORIZONTAL_JUSTIFY;
+                break;
+        }
+        $this ->setRowCellStyle($sheet,'getAlignment','setHorizontal',$row,$ncell,$value,$type);
+    }
+    // 设置样式
     public function setStyle($sheet,$row,$ncell,$key,$v,$type=''){
         $cell = $this ->numberToLetter($ncell);
         $row = $row+1;
         switch( $key ){
             case 'cell':
-                $mcell= $this ->numberToLetter($ncell+$v);
-                $sheet ->mergeCells($cell.$row.':'.$mcell.$row);//合并单元格
-                break;
-            case 'row':
-                $sheet ->mergeRows($cell.$row.':'.$cell.($key+$v));//合并单元格
+                if( is_array($v) ){
+                    $x = $v[0]-1;
+                    $y = $v[1]-1;
+                }else{
+                    $x = $v[0];
+                    $y = 0;
+                }
+                $mcell= $this ->numberToLetter($ncell+$x);
+                $sheet ->mergeCells($cell.$row.':'.$mcell.($row+$y));//合并单元格
                 break;
             case 'fontBold':
-                $this ->setFont($sheet,'setBold',$row,$ncell,$v,$type);
-            case 'fontSize':
-                $this ->setFont($sheet,'setSize',$row,$ncell,$v,$type);
-            case 'fontFamily':
-                $this ->setFont($sheet,'setName',$row,$ncell,$v,$type);
+                $this ->setRowCellStyle($sheet,'getFont','setBold',$row,$ncell,$v,$type);
                 break;
+            case 'fontSize':
+                $this ->setRowCellStyle($sheet,'getFont','setSize',$row,$ncell,$v,$type);
+                break;
+            case 'fontFamily':
+                $this ->setRowCellStyle($sheet,'getFont','setName',$row,$ncell,$v,$type);
+                break;
+            case 'fontColor':
+                $this ->setRowCellStyle($sheet,'getFont','setColor',$row,$ncell,$v,$type);
             case 'height':
                 $sheet ->getRowDimension($row)->setRowHeight($v);
+                break;
+            case 'horizontal':
+                $this ->setHorizontal($sheet,$row,$ncell,$v,$type);
+                break;
+            case 'vertical':
+                $this ->setVertical($sheet,$row,$ncell,$v,$type);
                 break;
             case 'width':
                 if( $v=='auto' ){
