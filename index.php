@@ -4,41 +4,79 @@ require 'PHPExcel\Classes\PHPExcel.php';
 $arr = [
     [
         'title' =>'测试sheet',
-        'data'=>[
-                    [
-                        'rows'=>[
-                            [
+        'style'=>[
+
+        ],
+        'header'=>[
+            'fields'=>[
+                [
+                'value'=>"字段名",
+                'field'=>'name',
+            ],
+            [
+                'value'=>"字段名1",
+                'field'=>'name1',
+            ],
+            [
+                'value'=>"字段名2",
+                'field'=>'name2',
+            ]],
+            'style'=>[
+
+            ],
+        ],
+        'body'=>[
+                'data'=>[
+                    
+                        [
+                            'name'=>[
                                 'value'=>"字段名",
                                 'fontBold'=>true,
                             ],
-                            [
-                                'value'=>"字段名1",
+                            'name1'=>[
+                                'value'=>"字段名8",
+                                'fontBold'=>true,
                             ],
-                            [
-                                'value'=>"字段名2",
+                            'name2'=>[
+                                'value'=>"字段名9",
+                                'fontBold'=>true,
                             ],
                         ],
-                        'height'=>'30',
-                        'fontSize'=>'15',
-                        'vertical'=>'top'
+                        [
+                            'name'=>[
+                                'value'=>"字段名",
+                                'fontBold'=>true,
+                            ],
+                            'name1'=>[
+                                'value'=>"字段名8",
+                                'fontBold'=>true,
+                            ],
+                            'name2'=>[
+                                'value'=>"字段名9",
+                                'fontBold'=>true,
+                            ],
+                        ],
+                        [
+                            'name'=>[
+                                'value'=>"字段名",
+                                'fontBold'=>true,
+                            ],
+                            'name1'=>[
+                                'value'=>"字段名8",
+                                'fontBold'=>true,
+                            ],
+                            'name2'=>[
+                                'value'=>"字段名9",
+                                'fontBold'=>true,
+                            ],
+                        ]
+                    
+                ],
+                'style'=>[
 
-                    ],
-                    [
-                        'rows'=>[
-                            [
-                                'value'=>"测试",
-                            ],
-                            [
-                                'value'=>"测试1",
-                            ],
-                            [
-                                'value'=>"测试2",
-                            ],
-                        ],
-                        'height'=>'15',
-                        'vertical'=>'top'
-                    ],     
-                ]
+                ],    
+        ],
+
     ]
 ];
 class Execl{
@@ -55,24 +93,25 @@ class Execl{
         return $str;
     }
     // 设置字体
-    private function setRowCellStyle($sheet,$fun,$method,$row,$ncell,$v,$type){
-        if( $type=='row' ){
-            for( $i=1;$i<=$ncell;$i++ ){
-                $cell= $this ->numberToLetter($i);
-                $sheet ->getStyle($cell.$row)->$fun()->$method($v); 
-            }
-        }elseif( $type=='cell' ){
+    private function setRowCellStyle($sheet,$fun,$method,$row,$ncell,$v){
             $cell= $this ->numberToLetter($ncell);
-            for( $i=1;$i<=$row;$i++ ){
-                $sheet ->getStyle($cell.$i)->$fun()->$method($v); 
+            
+            $obj = $sheet ->getStyle($cell.$row)->$fun(); 
+            $this ->list_exec_function($obj,$method,$v);
+
+    }
+    // 遍历执行方法
+    private function list_exec_function($obj,$method,$args){
+        if( is_array($method) ){
+            foreach( $method as $key=>$fun ){
+                $obj = $obj ->$fun($args[$key]);
             }
         }else{
-            $cell= $this ->numberToLetter($ncell);
-            $sheet ->getStyle($cell.$row)->$fun()->$method($v); 
+            $obj ->$method($args);
         }
     }
     // 设置垂直方向布局
-    private function setVertical($sheet,$row,$ncell,$v,$type){
+    private function setVertical($sheet,$row,$ncell,$v){
         $value = PHPExcel_Style_Alignment::VERTICAL_JUSTIFY;
         switch( $v ){
             case 'top':
@@ -85,11 +124,11 @@ class Execl{
                 $value = PHPExcel_Style_Alignment::VERTICAL_CENTER;
                 break;
         }
-        $this ->setRowCellStyle($sheet,'getAlignment','setVertical',$row,$ncell,$value,$type);
+        $this ->setRowCellStyle($sheet,'getAlignment','setVertical',$row,$ncell,$value);
         
     }
     // 设置水平方向布局
-    private function setHorizontal($sheet,$row,$ncell,$v,$type){
+    private function setHorizontal($sheet,$row,$ncell,$v){
         $value = PHPExcel_Style_Alignment::HORIZONTAL_JUSTIFY;
         switch( $v ){
             case 'right':
@@ -108,7 +147,7 @@ class Execl{
         $this ->setRowCellStyle($sheet,'getAlignment','setHorizontal',$row,$ncell,$value,$type);
     }
     // 设置样式
-    public function setStyle($sheet,$row,$ncell,$key,$v,$type=''){
+    public function setStyle($sheet,$row,$ncell,$key,$v){
         $cell = $this ->numberToLetter($ncell);
         $row = $row+1;
         switch( $key ){
@@ -124,24 +163,29 @@ class Execl{
                 $sheet ->mergeCells($cell.$row.':'.$mcell.($row+$y));//合并单元格
                 break;
             case 'fontBold':
-                $this ->setRowCellStyle($sheet,'getFont','setBold',$row,$ncell,$v,$type);
+                $this ->setRowCellStyle($sheet,'getFont','setBold',$row,$ncell,$v);
                 break;
             case 'fontSize':
-                $this ->setRowCellStyle($sheet,'getFont','setSize',$row,$ncell,$v,$type);
+                $this ->setRowCellStyle($sheet,'getFont','setSize',$row,$ncell,$v);
                 break;
             case 'fontFamily':
-                $this ->setRowCellStyle($sheet,'getFont','setName',$row,$ncell,$v,$type);
+                $this ->setRowCellStyle($sheet,'getFont','setName',$row,$ncell,$v);
                 break;
             case 'fontColor':
-                $this ->setRowCellStyle($sheet,'getFont','setColor',$row,$ncell,$v,$type);
+                $this ->setRowCellStyle($sheet,'getFont',['getColor','setColor'],$row,$ncell,[$v]);
             case 'height':
                 $sheet ->getRowDimension($row)->setRowHeight($v);
                 break;
             case 'horizontal':
-                $this ->setHorizontal($sheet,$row,$ncell,$v,$type);
+                $this ->setHorizontal($sheet,$row,$ncell,$v);
                 break;
             case 'vertical':
-                $this ->setVertical($sheet,$row,$ncell,$v,$type);
+                $this ->setVertical($sheet,$row,$ncell,$v);
+                break;
+            case 'borderTop':
+            $objBorderA5 = $objStyleA5->getBorders();
+                    $objBorderA5->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+                    $objBorderA5->getTop()->getColor()->setARGB(‘FFFF0000′); 
                 break;
             case 'width':
                 if( $v=='auto' ){
@@ -157,6 +201,23 @@ class Execl{
         }
         return $sheet;
     }
+    private function merge($origin,$sub){
+        if( empty($origin)&&empty($sub) ){
+            return [];
+        }
+        if( !$origin ){
+            $origin = [];
+        }
+        if( !$sub ){
+            $sub = [];
+        }
+        return array_merge($origin,$sub);
+    }
+    private function setValue($sheet,$data,$row,$cell){
+        foreach( $data as $key=>$value ){
+            $this ->setStyle($sheet,$row,$cell,$key,$value);
+        }
+    }
     public function create($arr){
         $objPHPExcel = new \PHPExcel();
         // 遍历sheet
@@ -165,20 +226,46 @@ class Execl{
             $objPHPExcel->setActiveSheetIndex($index);  
             $sheet = $objPHPExcel->getActiveSheet();
             $sheet ->setTitle($data['title']);
-            // 遍历行
-            foreach( $data['data'] as $key=>$value ){
-                // 设置行的样式
-                foreach( $value as $k=>$v ){
-                    $this ->setStyle($sheet,$key,count($value['rows']),$k,$v,'row');
+            $styles = $data['style'];
+            $header_style = $this ->merge($styles,$data['header']['style']);
+            $header_index= 0;
+            $this ->keys = [];
+            // 头部标题设置
+            foreach( $data['header']['fields'] as $hk => $hv ){
+                if( gettype($hv)=='string' ){
+                    $value_arr = $header_style;
+                    $value_arr['value'] = $hv;
+                }else{
+                    $value_arr = $this ->merge($header_style,$hv);
                 }
-                // 遍历列
-                foreach( $value['rows'] as $cell=>$vv ){
-                    // 设置列的样式
-                    foreach( $vv as $kkk=>$vvv ){
-                        $this ->setStyle($sheet,$key,$cell+1,$kkk,$vvv);
+                $this ->keys[] = $hv['field'];
+                $header_index++;
+                $this ->setValue($sheet,$value_arr,0,$header_index);
+            }
+            $body_style = $this ->merge($styles,$data['body']['style']);
+            // 内容设置
+            foreach( $data['body']['data'] as $key=>$value ){
+                //echo json_encode([$body_style,$value['style']]);die;
+                if( is_array($value) ){
+                    if( isset($value['fields']) ){
+                        $row_styles =  $this ->merge($body_style,$value['style']);
+                        $fields = $value['fields'];
+                    }else{
+                        $row_styles = $body_style;
+                        $fields = $value;
+                    }
+                    foreach( $this ->keys as $k =>$v ){
+                        $vv = $fields[$v];
+                        if( gettype($vv)=='string' ){
+                            $value_arr = $row_styles;
+                            $value_arr['value'] = $vv;
+                        }else{
+                            $value_arr = $this ->merge($row_styles,$vv);
+                        }
+                        $this ->setValue($sheet,$value_arr,$key+1,$k+1);
                     }
                 }
-                
+
             }
         }
         return $objPHPExcel;
