@@ -183,9 +183,24 @@ class Execl{
                 $this ->setVertical($sheet,$row,$ncell,$v);
                 break;
             case 'borderTop':
-            $objBorderA5 = $objStyleA5->getBorders();
-                    $objBorderA5->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
-                    $objBorderA5->getTop()->getColor()->setARGB(‘FFFF0000′); 
+                    $border = $sheet->getBorders()->getTop();
+                    $border ->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+                    $border ->getColor()->setARGB($v); 
+                break;
+            case 'borderLeft':
+                $border = $sheet->getBorders()->getLeft();
+                $border ->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+                $border ->getColor()->setARGB($v); 
+                break;
+            case 'borderRight':
+                $border = $sheet->getBorders()->getRight();
+                $border ->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+                $border ->getColor()->setARGB($v); 
+                break;
+            case 'borderBottom':
+                $border = $sheet->getBorders()->getBottom();
+                $border ->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+                $border ->getColor()->setARGB($v); 
                 break;
             case 'width':
                 if( $v=='auto' ){
